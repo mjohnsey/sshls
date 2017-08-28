@@ -43,6 +43,7 @@ type ByHost struct{ Hosts }
 func (s ByHost) Less(i, j int) bool { return s.Hosts[i].Host[0] < s.Hosts[j].Host[0] }
 
 var Interactive bool
+var PingOnly bool
 var hosts Hosts
 
 func (hosts Hosts) PrettyPrintStrings() []string {
@@ -53,12 +54,15 @@ func (hosts Hosts) PrettyPrintStrings() []string {
 	return result
 }
 
-func main(cmd *cobra.Command, args []string, isInteractive bool) {
+func main(cmd *cobra.Command, args []string, isInteractive bool, onlyPing bool) {
 	if hosts == nil {
 		log.Fatal("Could not get the hosts!")
 	}
 	if isInteractive {
 		fmt.Println("Interactive!")
+		if onlyPing{
+			fmt.Println("I will only ping not open an ssh session!")
+		}
 	} else {
 		printHosts(hosts)
 	}
@@ -75,7 +79,7 @@ var RootCmd = &cobra.Command{
 	Use:   "sshls",
 	Short: "This lists all your ssh hosts",
 	Run: func(cmd *cobra.Command, args []string) {
-		main(cmd, args, Interactive)
+		main(cmd, args, Interactive, PingOnly)
 	},
 }
 
@@ -92,7 +96,8 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(getHosts)
 	RootCmd.Flags().BoolVarP(&Interactive, "interactive", "i", false, "Run this in interactive mode")
-
+	// This flag gets ignored unless you run in interactive mode (probably a better way of doing it but don't feel like figuring it out)
+	RootCmd.Flags().BoolVarP(&PingOnly, "ping", "p", false, "Only run with ping when you select a host")
 }
 
 // This will get the ssh config file and set the objects
