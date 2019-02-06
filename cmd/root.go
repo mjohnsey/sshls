@@ -10,7 +10,7 @@ import (
 	"github.com/mikkeloscar/sshconfig"
 	"github.com/pkg/errors"
 
-	"github.com/mitchellh/go-homedir"
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +33,7 @@ func (hosts Hosts) PrettyPrintStrings() []string {
 	return result
 }
 
-func main(cmd *cobra.Command, args []string) {
+func Run(cmd *cobra.Command, args []string) {
 	if hosts == nil {
 		log.Fatal("Could not get the hosts!")
 	}
@@ -51,7 +51,7 @@ var RootCmd = &cobra.Command{
 	Use:   "sshls",
 	Short: "This lists all your ssh hosts",
 	Run: func(cmd *cobra.Command, args []string) {
-		main(cmd, args)
+		Run(cmd, args)
 	},
 }
 
