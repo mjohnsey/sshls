@@ -18,6 +18,7 @@ import (
 
 var hosts lib.Hosts
 var jsonFormat bool
+var sshFilePath string
 
 func Run(cmd *cobra.Command, args []string) {
 	if hosts == nil {
@@ -41,6 +42,7 @@ var rootCmd = &cobra.Command{
 	Use:   "sshls",
 	Short: "This lists all your ssh hosts",
 	Run: func(cmd *cobra.Command, args []string) {
+		getHosts(&sshFilePath)
 		Run(cmd, args)
 	},
 }
@@ -56,12 +58,6 @@ func Execute() {
 
 // Cobra command run on initialization
 func init() {
-	cobra.OnInitialize(getHosts)
-	rootCmd.PersistentFlags().BoolVar(&jsonFormat, "json", false, "format to json")
-}
-
-// This will get the ssh config file and set the objects
-func getHosts() {
 	// Find home directory.
 	home, err := homedir.Dir()
 	if err != nil {
@@ -69,7 +65,18 @@ func getHosts() {
 	}
 	// Grab the ssh config and parse it
 	sshConfigFile := filepath.Join(home, ".ssh", "config")
-	theHosts, err := sshconfig.ParseSSHConfig(sshConfigFile)
+
+	rootCmd.PersistentFlags().BoolVar(&jsonFormat, "json", false, "format to json")
+	rootCmd.PersistentFlags().StringVar(&sshFilePath, "configFile", sshConfigFile, "path to ssh config (defaults to ~/.ssh/config")
+}
+
+// This will get the ssh config file and set the objects
+func getHosts(sshConfigFile *string) {
+	// Grab the ssh config and parse it
+	theHosts, err := sshconfig.ParseSSHConfig(*sshConfigFile)
+	if err != nil {
+		log.Fatalln("Could not open the SSH config file")
+	}
 
 	whitelist := make([]*sshconfig.SSHHost, 0)
 
