@@ -1,5 +1,7 @@
 module github.com/mjohnsey/sshls
 
+go 1.14
+
 require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/mikkeloscar/sshconfig v0.0.0-20190102082740-ec0822bcc4f4

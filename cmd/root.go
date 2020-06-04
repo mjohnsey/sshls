@@ -12,26 +12,12 @@ import (
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
+
+	lib "github.com/mjohnsey/sshls/lib"
 )
 
-type Hosts []*sshconfig.SSHHost
-
-func (s Hosts) Len() int      { return len(s) }
-func (s Hosts) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
-
-type ByHost struct{ Hosts }
-
-func (s ByHost) Less(i, j int) bool { return s.Hosts[i].Host[0] < s.Hosts[j].Host[0] }
-
-var hosts Hosts
-
-func (hosts Hosts) PrettyPrintStrings() []string {
-	result := make([]string, len(hosts))
-	for i, host := range hosts {
-		result[i] = fmt.Sprintf("%s - %s\n", host.Host, host.HostName)
-	}
-	return result
-}
+var hosts lib.Hosts
+var jsonFormat bool
 
 func Run(cmd *cobra.Command, args []string) {
 	if hosts == nil {
@@ -40,14 +26,18 @@ func Run(cmd *cobra.Command, args []string) {
 	printHosts(hosts)
 }
 
-func printHosts(hosts Hosts) {
-	for _, host := range Hosts.PrettyPrintStrings(hosts) {
-		fmt.Printf(host)
+func printHosts(hosts lib.Hosts) {
+	if jsonFormat {
+		fmt.Println(*hosts.AsJsonString())
+	} else {
+		for _, host := range lib.Hosts.PrettyPrintStrings(hosts) {
+			fmt.Printf(host)
+		}
 	}
 }
 
 // RootCmd represents the base command when called without any subcommands
-var RootCmd = &cobra.Command{
+var rootCmd = &cobra.Command{
 	Use:   "sshls",
 	Short: "This lists all your ssh hosts",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -58,7 +48,7 @@ var RootCmd = &cobra.Command{
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	if err := RootCmd.Execute(); err != nil {
+	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
@@ -67,6 +57,7 @@ func Execute() {
 // Cobra command run on initialization
 func init() {
 	cobra.OnInitialize(getHosts)
+	rootCmd.PersistentFlags().BoolVar(&jsonFormat, "json", false, "format to json")
 }
 
 // This will get the ssh config file and set the objects
@@ -93,7 +84,7 @@ func getHosts() {
 	}
 
 	// sort by host name
-	sort.Sort(ByHost{whitelist})
+	sort.Sort(lib.ByHost{whitelist})
 	// set the hosts
 	hosts = whitelist
 }
