@@ -1,4 +1,4 @@
-FROM golang:1.14.4-buster as builder
+FROM golang:1.19.2-buster as builder
 WORKDIR /go/src/sshls
 COPY . .
 RUN go get -d -v ./...
