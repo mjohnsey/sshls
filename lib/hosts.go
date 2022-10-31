@@ -25,13 +25,13 @@ func (hosts Hosts) PrettyPrintStrings() []string {
 }
 
 func (hosts Hosts) AsJsonString() *string {
-	hostMap := make(map[string]string)
+	result := make(map[string]map[string]string)
 	for _, host := range hosts {
-		k := &host.Host[0]
-		v := &host.HostName
-		hostMap[*k] = *v
+		result[host.Host[0]] = make(map[string]string)
+		result[host.Host[0]]["hostname"] = host.HostName
+		result[host.Host[0]]["user"] = host.User
 	}
-	hostMapJsonB, _ := json.Marshal(hostMap)
-	asStr := string(hostMapJsonB)
+	jsonString, _ := json.Marshal(result)
+	asStr := string(jsonString)
 	return &asStr
 }
